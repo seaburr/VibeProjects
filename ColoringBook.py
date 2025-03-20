@@ -15,7 +15,8 @@ else:
     client = OpenAI(api_key=api_key)
 
 def generate_coloring_page(prompt, save_path):
-    response = client.images.generate(prompt=f"{prompt}, black and white line art, simple, child-friendly, with an emphasis on cute for animal and people for coloring",
+    response = client.images.generate(prompt=f"{prompt}, black and white line art, simple, child-friendly, with an emphasis on cute for animal and people suitable for coloring",
+    model="dall-e-3",
     n=1,
     size="1024x1024"
     )

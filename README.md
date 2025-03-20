@@ -10,8 +10,11 @@ The goal is very little if any massaging of the code once it's generated. Also v
 Generates simplistic black and white line art suited for coloring pages. Prompts user for input text before generating 
 image, displaying it, and saving it to disk with a timestamped filename.
 
+**NOTE:** Works better with DALLE3 (although it overshoots the complexity IMO however cost is $0.05/image vs. $0.02/image with DALLE2).
+
 Expects `OPENAI_API_KEY` environment variable when running.
 
 ## TracingWorksheet
 
-An attempt to generate letter/number tracing worksheets. Big fail. Bigger fail once I toggled DALLE3 off.
+An attempt to generate letter/number tracing worksheets. Big fail. Bigger fail once I toggled DALLE3 off. Then I tried
+to get it to render the image without AI. It still failed (see V2).
