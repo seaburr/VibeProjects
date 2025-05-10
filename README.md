@@ -10,7 +10,7 @@ The goal is very little if any massaging of the code once it's generated. Also v
 Generates simplistic black and white line art suited for coloring pages. Prompts user for input text before generating 
 image, displaying it, and saving it to disk with a timestamped filename.
 
-**NOTE:** Works better with DALLE3 (although it overshoots the complexity IMO however cost is $0.05/image vs. $0.02/image with DALLE2).
+**NOTE:** Works better with DALLE3 (although it overshoots the complexity IMO however cost is \$0.05/image vs. \$0.02/image with DALLE2).
 
 Expects `OPENAI_API_KEY` environment variable when running.
 
