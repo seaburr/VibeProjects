@@ -18,3 +18,11 @@ Expects `OPENAI_API_KEY` environment variable when running.
 
 An attempt to generate letter/number tracing worksheets. Big fail. Bigger fail once I toggled DALLE3 off. Then I tried
 to get it to render the image without AI. It still failed (see V2).
+
+## DrawAndGuessShape
+
+A failed attempt to build a game in Python. ChatGPT pushed me to the one below.
+
+## DrawAndGuessGameV2
+
+A HTML+JS single page game that draws some number of random shapes and asks the play to click on the matching one.
