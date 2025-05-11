@@ -26,6 +26,17 @@
       box-shadow: 0 0 4px rgba(0,0,0,0.2);
       display: none;
     }
+    #question {
+      position: absolute;
+      top: 50px;
+      left: 10px;
+      font-size: 20px;
+      background: rgba(255,255,255,0.9);
+      padding: 6px 12px;
+      border-radius: 8px;
+      box-shadow: 0 0 4px rgba(0,0,0,0.2);
+      display: none;
+    }
     #start-btn, #play-again-btn {
       position: absolute;
       top: 50%;
@@ -47,157 +58,162 @@
 </head>
 <body>
 <div id="score">Correct: 0 / 5 | Total Clicks: 0</div>
+<div id="question"></div>
 <button id="start-btn">Start Game</button>
 <button id="play-again-btn">Play Again</button>
 <canvas id="game" width="800" height="600"></canvas>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const scoreDiv = document.getElementById("score");
-const startBtn = document.getElementById("start-btn");
-const playAgainBtn = document.getElementById("play-again-btn");
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const scoreDiv = document.getElementById("score");
+  const startBtn = document.getElementById("start-btn");
+  const playAgainBtn = document.getElementById("play-again-btn");
+  const questionDiv = document.getElementById("question");
 
-const COLORS = ['red', 'blue', 'green', 'yellow', 'orange', 'purple'];
-const SHAPES = {
-  0: "circle",
-  3: "triangle",
-  4: "square",
-  5: "pentagon",
-  8: "octagon",
-  99: "rectangle" // special case
-};
+  const COLORS = ['red', 'blue', 'green', 'yellow', 'orange', 'purple'];
+  const SHAPES = {
+    0: "circle",
+    3: "triangle",
+    4: "square",
+    5: "pentagon",
+    8: "octagon",
+    99: "rectangle" // special case
+  };
 
-let shapes = [];
-let target = null;
-let correct = 0;
-let totalClicks = 0;
+  let shapes = [];
+  let target = null;
+  let correct = 0;
+  let totalClicks = 0;
 
-function speak(text) {
-  const utter = new SpeechSynthesisUtterance(text);
-  speechSynthesis.speak(utter);
-}
+  function speak(text) {
+    const utter = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(utter);
+  }
 
-function drawShape(x, y, sides, size, color) {
-  ctx.save();
-  ctx.beginPath();
-  if (sides === 0) {
-    ctx.arc(x, y, size, 0, 2 * Math.PI);
-  } else if (sides === 99) {
-    ctx.rect(x - size, y - size / 2, size * 2, size);
-  } else {
-    const angleStep = (2 * Math.PI) / sides;
-    let startAngle = Math.PI / 2 + Math.PI; // Default upright
-    if (sides === 4) startAngle += Math.PI / 4; // Rotate square by 45 degrees
-    for (let i = 0; i < sides; i++) {
-      const px = x + size * Math.cos(startAngle + i * angleStep);
-      const py = y + size * Math.sin(startAngle + i * angleStep);
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
+  function drawShape(x, y, sides, size, color) {
+    ctx.save();
+    ctx.beginPath();
+    if (sides === 0) {
+      ctx.arc(x, y, size, 0, 2 * Math.PI);
+    } else if (sides === 99) {
+      ctx.rect(x - size, y - size / 2, size * 2, size);
+    } else {
+      const angleStep = (2 * Math.PI) / sides;
+      let startAngle = Math.PI / 2 + Math.PI;
+      if (sides === 4) startAngle += Math.PI / 4;
+      for (let i = 0; i < sides; i++) {
+        const px = x + size * Math.cos(startAngle + i * angleStep);
+        const py = y + size * Math.sin(startAngle + i * angleStep);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
     }
-    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = "black";
+    ctx.stroke();
+    ctx.restore();
   }
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.strokeStyle = "black";
-  ctx.stroke();
-  ctx.restore();
-}
 
-function drawAllShapes() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  shapes.forEach(s => drawShape(s.x, s.y, s.sides, 40, s.color));
-}
-
-function updateScore() {
-  scoreDiv.textContent = `Correct: ${correct} / 5 | Total Clicks: ${totalClicks}`;
-}
-
-function shapesOverlap(x, y, radius = 50) {
-  return shapes.some(s => Math.hypot(s.x - x, s.y - y) < radius * 2);
-}
-
-function newRound() {
-  shapes = [];
-  const shapeKeys = Object.keys(SHAPES);
-  const usedCombos = new Set();
-  const count = Math.floor(Math.random() * 5) + 3;
-
-  for (let i = 0; i < count; i++) {
-    let x, y, sides, color;
-    let attempts = 0;
-    do {
-      x = Math.random() * 700 + 50;
-      y = Math.random() * 500 + 50;
-      sides = parseInt(shapeKeys[Math.floor(Math.random() * shapeKeys.length)]);
-      color = COLORS[Math.floor(Math.random() * COLORS.length)];
-      attempts++;
-    } while ((shapesOverlap(x, y) || usedCombos.has(`${sides}-${color}`)) && attempts < 100);
-
-    usedCombos.add(`${sides}-${color}`);
-    shapes.push({ x, y, sides, shape: SHAPES[sides], color });
+  function drawAllShapes() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    shapes.forEach(s => drawShape(s.x, s.y, s.sides, 40, s.color));
   }
-  target = shapes[Math.floor(Math.random() * shapes.length)];
-  speak(`Which one is the ${target.color} ${target.shape}?`);
-  drawAllShapes();
-  updateScore();
-}
 
-canvas.addEventListener("click", (e) => {
-  if (!target) return;
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  totalClicks++;
-  for (let i = 0; i < shapes.length; i++) {
-    const s = shapes[i];
-    const dx = x - s.x;
-    const dy = y - s.y;
-    if (Math.sqrt(dx * dx + dy * dy) < 40) {
-      if (s === target) {
-        correct++;
-        if (correct >= 5) {
-          speak("Congratulations! You won the game.");
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.font = "36px sans-serif";
-          ctx.fillStyle = "black";
-          ctx.fillText("🎉 You won! 🎉", 280, 300);
-          updateScore();
-          target = null;
-          playAgainBtn.style.display = "block";
-          return;
+  function updateScore() {
+    scoreDiv.textContent = `Correct: ${correct} / 5 | Total Clicks: ${totalClicks}`;
+  }
+
+  function shapesOverlap(x, y, radius = 50) {
+    return shapes.some(s => Math.hypot(s.x - x, s.y - y) < radius * 2);
+  }
+
+  function newRound() {
+    shapes = [];
+    const shapeKeys = Object.keys(SHAPES);
+    const usedCombos = new Set();
+    const count = Math.floor(Math.random() * 5) + 3;
+
+    for (let i = 0; i < count; i++) {
+      let x, y, sides, color;
+      let attempts = 0;
+      do {
+        x = Math.random() * 700 + 50;
+        y = Math.random() * 400 + 150; // ensure y starts below the UI
+        sides = parseInt(shapeKeys[Math.floor(Math.random() * shapeKeys.length)]);
+        color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        attempts++;
+      } while ((shapesOverlap(x, y) || usedCombos.has(`${sides}-${color}`)) && attempts < 100);
+
+      usedCombos.add(`${sides}-${color}`);
+      shapes.push({ x, y, sides, shape: SHAPES[sides], color });
+    }
+    target = shapes[Math.floor(Math.random() * shapes.length)];
+    const prompt = `Which one is the ${target.color} ${target.shape}?`;
+    speak(prompt);
+    questionDiv.textContent = prompt;
+    questionDiv.style.display = "block";
+    drawAllShapes();
+    updateScore();
+  }
+
+  canvas.addEventListener("click", (e) => {
+    if (!target) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    totalClicks++;
+    for (let i = 0; i < shapes.length; i++) {
+      const s = shapes[i];
+      const dx = x - s.x;
+      const dy = y - s.y;
+      if (Math.sqrt(dx * dx + dy * dy) < 40) {
+        if (s === target) {
+          correct++;
+          if (correct >= 5) {
+            speak("Congratulations! You won the game.");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = "36px sans-serif";
+            ctx.fillStyle = "black";
+            ctx.fillText("🎉 You won! 🎉", 280, 300);
+            updateScore();
+            target = null;
+            playAgainBtn.style.display = "block";
+            return;
+          } else {
+            speak("Correct! Well done.");
+            newRound();
+            return;
+          }
         } else {
-          speak("Correct! Well done.");
-          newRound();
+          speak("Oops! Try again.");
+          shapes.splice(i, 1);
+          drawAllShapes();
+          updateScore();
           return;
         }
-      } else {
-        speak("Oops! Try again.");
-        shapes.splice(i, 1);
-        drawAllShapes();
-        updateScore();
-        return;
       }
     }
-  }
-  updateScore();
-});
+    updateScore();
+  });
 
-startBtn.addEventListener("click", () => {
-  startBtn.style.display = "none";
-  scoreDiv.style.display = "block";
-  correct = 0;
-  totalClicks = 0;
-  newRound();
-});
+  startBtn.addEventListener("click", () => {
+    startBtn.style.display = "none";
+    scoreDiv.style.display = "block";
+    correct = 0;
+    totalClicks = 0;
+    newRound();
+  });
 
-playAgainBtn.addEventListener("click", () => {
-  playAgainBtn.style.display = "none";
-  scoreDiv.style.display = "block";
-  correct = 0;
-  totalClicks = 0;
-  newRound();
-});
+  playAgainBtn.addEventListener("click", () => {
+    playAgainBtn.style.display = "none";
+    scoreDiv.style.display = "block";
+    correct = 0;
+    totalClicks = 0;
+    newRound();
+  });
 </script>
 </body>
 </html>
